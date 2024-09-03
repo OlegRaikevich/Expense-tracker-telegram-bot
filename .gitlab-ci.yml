@@ -6,13 +6,6 @@ stages:
   - build
   - deploy
 
-run_telegram_bot:
-  image: python:3.9-slim-buster
-  before_script:
-    apt-get update && apt-get install make
-  script:
-    - make start
-
 build_image:
   stage: build
   image: docker:27.2.0-cli
