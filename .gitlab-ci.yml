@@ -11,7 +11,7 @@ build_telegram_bot:
 
 build_image:
   image: docker:27.2.0-cli
-  sevices:
+  services:
     - docker:27.2.0-dind
   variables:
     - DOCKER_TLS_CERTDIR: "/certs"
