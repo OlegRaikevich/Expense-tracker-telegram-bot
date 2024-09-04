@@ -1,19 +1,56 @@
-import logging
-import os
+# import logging
+# import os
 # from telegram import Bot
 # from telegram import Update
 # from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, filters, MessageHandler
+
+
+
+# bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+# bot = Bot(token=bot_token)
+
+# logging.basicConfig(
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+#     level=logging.INFO
+# )
+
+# async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     await context.bot.send_message(
+#         chat_id=update.effective_chat.id, 
+#         text="Hello!"
+#     )
+
+# async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     await context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
+
+
+# if __name__ == '__main__':
+#     application = ApplicationBuilder().token(bot_token).build()
+    
+#     start_handler = CommandHandler('start', start)
+#     # echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
+
+#     application.add_handler(start_handler)
+    
+#     unknown_handler = MessageHandler(filters.COMMAND, unknown)
+#     application.add_handler(unknown_handler)
+
+#     application.run_polling()
+
+
+
+import logging
+import os
+
 from telegram import Update, ForceReply, InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
 
-
 bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
-# bot = Bot(token=bot_token)
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+logger = logging.getLogger(__name__)
+
+# Store bot screaming status
+screaming = False
 
 # Pre-assign menu text
 FIRST_MENU = "<b>Menu 1</b>\n\nA beautiful menu with a shiny inline button."
@@ -33,15 +70,6 @@ SECOND_MENU_MARKUP = InlineKeyboardMarkup([
     [InlineKeyboardButton(TUTORIAL_BUTTON, url="https://core.telegram.org/bots/api")]
 ])
 
-
-# async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     await context.bot.send_message(
-#         chat_id=update.effective_chat.id, 
-#         text="Hello!"
-#     )
-
-# async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-#     await context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
 
 def echo(update: Update, context: CallbackContext) -> None:
     """
@@ -148,20 +176,3 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
-# if __name__ == '__main__':
-#     application = ApplicationBuilder().token(bot_token).build()
-    
-#     start_handler = CommandHandler('start', start)
-#     # echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
-
-#     application.add_handler(start_handler)
-    
-#     unknown_handler = MessageHandler(filters.COMMAND, unknown)
-#     application.add_handler(unknown_handler)
-
-#     application.run_polling()
