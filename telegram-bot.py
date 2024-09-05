@@ -1,137 +1,132 @@
 import logging
 import os
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram.constants import ParseMode
+from telegram.ext import Application, ContextTypes, CommandHandler, filters, CallbackContext, MessageHandler, CallbackQueryHandler
 
-from telegram import Update, ForceReply, InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext, CallbackQueryHandler
+
 
 bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+# bot = Bot(token=bot_token)
 
 logger = logging.getLogger(__name__)
 
-# Store bot screaming status
-screaming = False
+# Menu text
+MENU = "<b>Expanse tracker</b>\n\nWhat you would like to do?"
 
-# Pre-assign menu text
-FIRST_MENU = "<b>Menu 1</b>\n\nA beautiful menu with a shiny inline button."
-SECOND_MENU = "<b>Menu 2</b>\n\nA better menu with even more shiny inline buttons."
+# Button labels
+BUTTONS = {
+   'RECORD_EXPENSE':'Record expenses',
+   'SHOW_WEEK':'Show expenses per week',
+   'SHOW_MONTH':'Show expenses per month',
+   'SHOW_AVERAGE':'Show average expenses amount per day'
 
-# Pre-assign button text
-NEXT_BUTTON = "Next"
-BACK_BUTTON = "Back"
-TUTORIAL_BUTTON = "Tutorial"
+}
 
-# Build keyboards
-FIRST_MENU_MARKUP = InlineKeyboardMarkup([[
-    InlineKeyboardButton(NEXT_BUTTON, callback_data=NEXT_BUTTON)
-]])
-SECOND_MENU_MARKUP = InlineKeyboardMarkup([
-    [InlineKeyboardButton(BACK_BUTTON, callback_data=BACK_BUTTON)],
-    [InlineKeyboardButton(TUTORIAL_BUTTON, url="https://core.telegram.org/bots/api")]
+# Inline keyboard markup
+MENU_MARKUP = InlineKeyboardMarkup([
+    [InlineKeyboardButton(BUTTONS['RECORD_EXPENSE'], callback_data='record')],
+    [InlineKeyboardButton(BUTTONS['SHOW_WEEK'], callback_data='show_week')],
+    [InlineKeyboardButton(BUTTONS['SHOW_MONTH'], callback_data='show_month')],
+    [InlineKeyboardButton(BUTTONS['SHOW_AVERAGE'], callback_data='show_average')]
 ])
 
+# Start command: Displays the main menu
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=update.effective_chat.id, 
+        text="Hello! Welcome to the Expense Tracker Bot.",
+        reply_markup=MENU_MARKUP,
+        parse_mode=ParseMode.HTML
+    )
 
-def echo(update: Update, context: CallbackContext) -> None:
+# Menu command: Re-displays the menu
+async def menu(update: Update, context: CallbackContext) -> None:
     """
-    This function would be added to the dispatcher as a handler for messages coming from the Bot API
+    Sends the inline keyboard menu to the user.
     """
-
-    # Print to console
-    print(f'{update.message.from_user.first_name} wrote {update.message.text}')
-
-    if screaming and update.message.text:
-        context.bot.send_message(
-            update.message.chat_id,
-            update.message.text.upper(),
-            # To preserve the markdown, we attach entities (bold, italic...)
-            entities=update.message.entities
-        )
-    else:
-        # This is equivalent to forwarding, without the sender's name
-        update.message.copy(update.message.chat_id)
-
-
-def scream(update: Update, context: CallbackContext) -> None:
-    """
-    This function handles the /scream command
-    """
-
-    global screaming
-    screaming = True
-
-
-def whisper(update: Update, context: CallbackContext) -> None:
-    """
-    This function handles /whisper command
-    """
-
-    global screaming
-    screaming = False
-
-
-def menu(update: Update, context: CallbackContext) -> None:
-    """
-    This handler sends a menu with the inline buttons we pre-assigned above
-    """
-
-    context.bot.send_message(
-        update.message.from_user.id,
-        FIRST_MENU,
+    await update.message.reply_text(
+        MENU,
         parse_mode=ParseMode.HTML,
-        reply_markup=FIRST_MENU_MARKUP
+        reply_markup=MENU_MARKUP
     )
 
-
-def button_tap(update: Update, context: CallbackContext) -> None:
+# Handler for inline button presses
+async def button_tap(update: Update, context: CallbackContext) -> None:
     """
-    This handler processes the inline buttons on the menu
+    Handles inline button presses from the menu.
     """
-
     data = update.callback_query.data
-    text = ''
-    markup = None
 
-    if data == NEXT_BUTTON:
-        text = SECOND_MENU
-        markup = SECOND_MENU_MARKUP
-    elif data == BACK_BUTTON:
-        text = FIRST_MENU
-        markup = FIRST_MENU_MARKUP
+    if data == 'record':
+        await update.callback_query.message.reply_text(
+            "Please enter the amount of your expense:"
+        )
+        # Here you can set a state to expect the user to input an expense amount
+        # You could set a state in the context.user_data for later use
+        context.user_data['awaiting_expense'] = True
 
-    # Close the query to end the client-side loading animation
-    update.callback_query.answer()
+    elif data == 'show_week':
+        await update.callback_query.message.reply_text("Showing expenses for the week...")
 
-    # Update message content with corresponding menu section
-    update.callback_query.message.edit_text(
-        text,
-        ParseMode.HTML,
-        reply_markup=markup
-    )
+    elif data == 'show_month':
+        await update.callback_query.message.reply_text("Showing expenses for the month...")
 
+    elif data == 'show_average':
+        await update.callback_query.message.reply_text("Showing average daily expenses...")
+
+    await update.callback_query.answer()
+
+# Function to handle user input (expenses)
+async def handle_expense(update: Update, context: CallbackContext) -> None:
+    """
+    Handles the user input after they select "Record expense".
+    """
+    if context.user_data.get('awaiting_expense'):
+        try:
+            # Get the user's expense input
+            expense = float(update.message.text)
+            # For now, we just reply with the recorded expense
+            await update.message.reply_text(f"Recorded expense: {expense} units")
+
+            # Clear the 'awaiting_expense' state
+            context.user_data['awaiting_expense'] = False
+
+            # Here you would eventually store the data in the database
+            # For example: `save_expense_to_db(user_id, expense, datetime.now())`
+
+        except ValueError:
+            await update.message.reply_text("Please enter a valid number.")
+
+async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, I didn't understand that command.")
+
+# Error handling
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.error(msg="Exception while handling update:", exc_info=context.error)
 
 def main() -> None:
-    updater = Updater("bot_token")
+    # Check if the bot token is set
+    if not bot_token:
+        logger.error("TELEGRAM_BOT_TOKEN is not set!")
+        return
 
-    # Get the dispatcher to register handlers
-    # Then, we register each handler and the conditions the update must meet to trigger it
-    dispatcher = updater.dispatcher
+    # Create an Application instance
+    application = Application.builder().token(bot_token).build()
 
-    # Register commands
-    dispatcher.add_handler(CommandHandler("scream", scream))
-    dispatcher.add_handler(CommandHandler("whisper", whisper))
-    dispatcher.add_handler(CommandHandler("menu", menu))
+    # Register command handlers
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("menu", menu))
+    application.add_handler(MessageHandler(filters.COMMAND, unknown))
+    application.add_handler(CallbackQueryHandler(button_tap))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_expense))
 
-    # Register handler for inline buttons
-    dispatcher.add_handler(CallbackQueryHandler(button_tap))
+    # Register error handler
+    application.add_error_handler(error_handler)
 
-    # Echo any message that is not a command
-    dispatcher.add_handler(MessageHandler(~Filters.command, echo))
-
-    # Start the Bot
-    updater.start_polling()
-
-    # Run the bot until you press Ctrl-C
-    updater.idle()
-
+    # Start the bot with run_polling
+    logger.info("Starting bot polling...")
+    application.run_polling()
 
 if __name__ == '__main__':
     main()
