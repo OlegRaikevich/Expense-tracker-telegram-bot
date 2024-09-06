@@ -12,4 +12,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 5000
 
-CMD ["python", "telegram-bot.py"]
+CMD ["python", "main_bot.py"]
