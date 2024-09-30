@@ -1,6 +1,6 @@
 variables:
     IMAGE_NAME: olegraikevich/python-app
-    IMAGE_TAG: expense-tracker-telegram-bot
+    IMAGE_TAG: expense-tracker-bot
 
 stages:
   - build
