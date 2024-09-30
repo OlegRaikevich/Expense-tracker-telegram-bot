@@ -3,6 +3,7 @@ from telegram.ext import ContextTypes
 from keyboards import MENU, MENU_MARKUP
 from database import save_expense, get_average_expense, get_expenses_for_period
 
+
 # Start command handler
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(
@@ -11,12 +12,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=MENU_MARKUP
     )
 
+
 # Menu command hendler
 async def menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         MENU,
         reply_markup=MENU_MARKUP
     )
+
 
 # Buttons tap handler
 async def button_tap(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -27,7 +30,7 @@ async def button_tap(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Please enter the amount of your expense:"
         )
         context.user_data['awaiting_expense'] = True
-    
+
     elif data == 'show_week':
         expenses = get_expenses_for_period(update.effective_user.id, 'week')
         await update.callback_query.message.reply_text(f"Expenses for the week: {expenses}")
@@ -53,6 +56,7 @@ async def handle_expense(update: Update, context: ContextTypes.DEFAULT_TYPE):
             context.user_data['awaiting_expense'] = False
         except ValueError:
             await update.message.reply_text("Please enter a valid number.")
+
 
 # Unknown command handler
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):

@@ -19,6 +19,7 @@ MENU_MARKUP = InlineKeyboardMarkup([
     [InlineKeyboardButton(BUTTONS['SHOW_AVERAGE'], callback_data='show_average')]
 ])
 
+
 # Error handler
 async def error_handler(update: object, context: object) -> None:
     print(f"Eror: {context.error}")

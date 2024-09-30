@@ -9,9 +9,10 @@ from keyboards import error_handler
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 def main():
     # Initialization data base
-    conn = init_db()
+    init_db()
 
     # Check if the bot token is set
     if not bot_token:
@@ -34,6 +35,7 @@ def main():
     # Start the bot with run_polling
     logger.info("Starting bot polling...")
     application.run_polling()
+
 
 if __name__ == '__main__':
     main()
