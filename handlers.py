@@ -56,6 +56,9 @@ async def handle_expense(update: Update, context: ContextTypes.DEFAULT_TYPE):
             context.user_data['awaiting_expense'] = False
         except ValueError:
             await update.message.reply_text("Please enter a valid number.")
+        except Exception as e:
+            await update.message.reply_text("An error occurred while saving your expense. Please try again.")
+            context.user_data['awaiting_expense'] = False
 
 
 # Unknown command handler
